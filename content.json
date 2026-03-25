@@ -1,0 +1,71 @@
+{
+  "profile": {
+    "name": "Ditt Navn",
+    "title": "Din tittel / tagline her",
+    "bio": "Skriv litt om deg selv her. Dette vises på forsiden. Du kan fortelle om hva du lager, hvem du er, og hva folk kan forvente å finne her.",
+    "profileImage": "images/profile.jpg",
+    "email": "din@epost.no",
+    "socials": [
+      { "name": "Instagram", "url": "https://instagram.com/dittbrukernavn", "icon": "instagram" },
+      { "name": "YouTube", "url": "https://youtube.com/@dittbrukernavn", "icon": "youtube" },
+      { "name": "TikTok", "url": "https://tiktok.com/@dittbrukernavn", "icon": "tiktok" }
+    ]
+  },
+
+  "gallery": {
+    "title": "Bilder & Innhold",
+    "description": "Et utvalg av mitt arbeid og innhold.",
+    "items": [
+      {
+        "image": "images/bilde1.jpg",
+        "caption": "Bildetekst 1",
+        "category": "Foto"
+      },
+      {
+        "image": "images/bilde2.jpg",
+        "caption": "Bildetekst 2",
+        "category": "Design"
+      },
+      {
+        "image": "images/bilde3.jpg",
+        "caption": "Bildetekst 3",
+        "category": "Foto"
+      }
+    ]
+  },
+
+  "apps": {
+    "title": "Mine Apper & Prosjekter",
+    "description": "Her finner du alt jeg har laget.",
+    "items": [
+      {
+        "name": "App Navn 1",
+        "description": "En kort beskrivelse av hva appen gjør og hvem den er for.",
+        "icon": "images/app1-icon.png",
+        "link": "https://lenke-til-app.no",
+        "badge": "Ny",
+        "platform": "iOS & Android"
+      },
+      {
+        "name": "App Navn 2",
+        "description": "En kort beskrivelse av hva appen gjør og hvem den er for.",
+        "icon": "images/app2-icon.png",
+        "link": "https://lenke-til-app2.no",
+        "badge": "",
+        "platform": "Web"
+      }
+    ]
+  },
+
+  "contact": {
+    "title": "Ta Kontakt",
+    "description": "Interessert i samarbeid eller har spørsmål? Send meg en melding!",
+    "email": "din@epost.no",
+    "buttonText": "Send E-post"
+  },
+
+  "theme": {
+    "accentColor": "#6C63FF",
+    "darkMode": true
+  }
+}

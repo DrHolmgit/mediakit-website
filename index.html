@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Media Kit</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-inner">
+      <span class="nav-logo" id="nav-name">Media Kit</span>
+      <ul class="nav-links">
+        <li><a href="#hero">Hjem</a></li>
+        <li><a href="#gallery">Bilder</a></li>
+        <li><a href="#apps">Apper</a></li>
+        <li><a href="#contact">Kontakt</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero" id="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-content">
+      <div class="profile-img-wrap">
+        <img src="" alt="Profilbilde" class="profile-img" id="profile-img" />
+        <div class="profile-img-placeholder" id="profile-placeholder">?</div>
+      </div>
+      <h1 class="hero-name" id="hero-name">Laster...</h1>
+      <p class="hero-title" id="hero-title"></p>
+      <p class="hero-bio" id="hero-bio"></p>
+      <div class="social-links" id="social-links"></div>
+      <a href="#contact" class="cta-btn" id="cta-btn">Ta Kontakt</a>
+    </div>
+    <div class="scroll-indicator">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+    </div>
+  </section>
+
+  <!-- GALLERY -->
+  <section class="section" id="gallery">
+    <div class="section-inner">
+      <h2 class="section-title" id="gallery-title">Bilder & Innhold</h2>
+      <p class="section-desc" id="gallery-desc"></p>
+      <div class="filter-bar" id="filter-bar"></div>
+      <div class="gallery-grid" id="gallery-grid"></div>
+    </div>
+  </section>
+
+  <!-- APPS -->
+  <section class="section section-alt" id="apps">
+    <div class="section-inner">
+      <h2 class="section-title" id="apps-title">Mine Apper</h2>
+      <p class="section-desc" id="apps-desc"></p>
+      <div class="apps-grid" id="apps-grid"></div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section class="section" id="contact">
+    <div class="section-inner contact-inner">
+      <h2 class="section-title" id="contact-title">Ta Kontakt</h2>
+      <p class="section-desc" id="contact-desc"></p>
+      <a href="#" class="contact-btn" id="contact-btn">Send E-post</a>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <p id="footer-name"></p>
+  </footer>
+
+  <!-- LIGHTBOX -->
+  <div class="lightbox" id="lightbox">
+    <button class="lightbox-close" id="lightbox-close">&times;</button>
+    <img src="" alt="" class="lightbox-img" id="lightbox-img" />
+    <p class="lightbox-caption" id="lightbox-caption"></p>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
