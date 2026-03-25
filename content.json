@@ -10,22 +10,22 @@
 
   "gallery": {
     "title": "Bilder & Innhold",
-    "description": "Et utvalg av mitt arbeid og innhold.",
+    "description": "Et utvalg av bilder, videoer og innhold.",
     "items": [
       {
-        "image": "images/bilde1.jpg",
-        "caption": "Bildetekst 1",
+        "image": "images/hytte-snø.jpg",
+        "caption": "Hytta nesten begravd i snø",
         "category": "Foto"
       },
       {
-        "image": "images/bilde2.jpg",
-        "caption": "Bildetekst 2",
-        "category": "Design"
+        "image": "images/settled-science.png",
+        "caption": "A Brief History of Settled Science",
+        "category": "Interessant"
       },
       {
-        "image": "images/bilde3.jpg",
-        "caption": "Bildetekst 3",
-        "category": "Foto"
+        "video": "images/hytte-video.mp4",
+        "caption": "Video fra hytta",
+        "category": "Video"
       }
     ]
   },

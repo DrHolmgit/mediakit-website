@@ -114,20 +114,26 @@ function buildGallery(gallery) {
   }
 
   // Build gallery items
-  grid.innerHTML = gallery.items.map((item, i) => `
-    <div class="gallery-item fade-in" data-cat="${item.category || ''}" data-index="${i}">
-      ${item.image
-        ? `<img src="${item.image}" alt="${item.caption || ''}" loading="lazy" onerror="this.parentElement.querySelector('.gallery-placeholder').style.display='flex'; this.style.display='none'" />`
-        : ''}
-      <div class="gallery-placeholder" style="${item.image ? 'display:none' : ''}">
-        <span>Bilde ikke funnet</span>
-      </div>
+  grid.innerHTML = gallery.items.map((item, i) => {
+    const isVideo = !!item.video;
+    const mediaSrc = item.video || item.image || '';
+    return `
+    <div class="gallery-item fade-in" data-cat="${item.category || ''}" data-index="${i}" data-type="${isVideo ? 'video' : 'image'}" data-src="${mediaSrc}" data-caption="${item.caption || ''}">
+      ${isVideo
+        ? `<div class="gallery-video-thumb">
+             <video src="${item.video}" muted playsinline preload="metadata" class="gallery-video-preview"></video>
+             <div class="play-icon">▶</div>
+           </div>`
+        : item.image
+          ? `<img src="${item.image}" alt="${item.caption || ''}" loading="lazy" onerror="this.parentElement.querySelector('.gallery-placeholder').style.display='flex'; this.style.display='none'" />`
+          : ''}
+      ${!isVideo ? `<div class="gallery-placeholder" style="${item.image ? 'display:none' : ''}"><span>Bilde ikke funnet</span></div>` : ''}
       <div class="gallery-item-info">
         ${item.category ? `<div class="gallery-category">${item.category}</div>` : ''}
         ${item.caption ? `<div class="gallery-caption">${item.caption}</div>` : ''}
       </div>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
 }
 
 // ===== APPS =====
@@ -194,16 +200,33 @@ function buildFooter(profile) {
 function initLightbox() {
   const lightbox = document.getElementById('lightbox');
   const lbImg = document.getElementById('lightbox-img');
+  const lbVideo = document.getElementById('lightbox-video');
   const lbCaption = document.getElementById('lightbox-caption');
   const lbClose = document.getElementById('lightbox-close');
 
   document.getElementById('gallery-grid').addEventListener('click', e => {
     const item = e.target.closest('.gallery-item');
     if (!item) return;
-    const img = item.querySelector('img');
-    if (!img || img.style.display === 'none') return;
-    lbImg.src = img.src;
-    lbCaption.textContent = item.querySelector('.gallery-caption')?.textContent || '';
+    const src = item.dataset.src;
+    const type = item.dataset.type;
+    const caption = item.dataset.caption;
+    if (!src) return;
+
+    lbCaption.textContent = caption || '';
+
+    if (type === 'video') {
+      lbImg.style.display = 'none';
+      lbVideo.style.display = 'block';
+      lbVideo.src = src;
+      lbVideo.play();
+    } else {
+      lbVideo.style.display = 'none';
+      lbVideo.pause();
+      lbVideo.src = '';
+      lbImg.style.display = 'block';
+      lbImg.src = src;
+    }
+
     lightbox.classList.add('open');
     document.body.style.overflow = 'hidden';
   });
@@ -211,6 +234,8 @@ function initLightbox() {
   const closeLightbox = () => {
     lightbox.classList.remove('open');
     document.body.style.overflow = '';
+    lbVideo.pause();
+    lbVideo.src = '';
   };
 
   lbClose.addEventListener('click', closeLightbox);
