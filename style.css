@@ -462,6 +462,18 @@ a { color: inherit; text-decoration: none; }
   box-shadow: 0 8px 30px rgba(108,99,255,0.4);
 }
 
+.contact-email-display {
+  margin-top: 1rem;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  letter-spacing: 0.01em;
+  transition: color 0.2s;
+}
+
+.contact-email-display:hover {
+  color: var(--accent-light);
+}
+
 /* ===== FOOTER ===== */
 .footer {
   padding: 2rem;

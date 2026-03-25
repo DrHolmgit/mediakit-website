@@ -164,9 +164,23 @@ function buildContact(contact) {
   setText('contact-desc', contact.description);
 
   const btn = document.getElementById('contact-btn');
-  if (btn) {
+  if (btn && contact.email) {
     btn.textContent = contact.buttonText || 'Send E-post';
-    btn.href = contact.email ? `mailto:${contact.email}` : '#';
+    btn.href = `mailto:${contact.email}`;
+
+    // Show email address as visible text below the button
+    const emailDisplay = document.createElement('p');
+    emailDisplay.className = 'contact-email-display';
+    emailDisplay.textContent = contact.email;
+    emailDisplay.title = 'Klikk for å kopiere';
+    emailDisplay.style.cursor = 'pointer';
+    emailDisplay.addEventListener('click', () => {
+      navigator.clipboard.writeText(contact.email).then(() => {
+        emailDisplay.textContent = '✓ Kopiert!';
+        setTimeout(() => { emailDisplay.textContent = contact.email; }, 2000);
+      });
+    });
+    btn.parentNode.insertBefore(emailDisplay, btn.nextSibling);
   }
 }
 
