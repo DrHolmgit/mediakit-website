@@ -1,15 +1,11 @@
 {
   "profile": {
-    "name": "Ditt Navn",
-    "title": "Din tittel / tagline her",
-    "bio": "Skriv litt om deg selv her. Dette vises på forsiden. Du kan fortelle om hva du lager, hvem du er, og hva folk kan forvente å finne her.",
+    "name": "Bjørnar Holm",
+    "title": "AI-entusiast | Helse & Finans",
+    "bio": "Jeg er i gang med å lære meg kunstig intelligens og er spesielt interessert i hvordan AI kan brukes innen helse og finans. Her deler jeg det jeg lærer, prosjekter jeg jobber med, og verktøy jeg utvikler.",
     "profileImage": "images/profile.jpg",
     "email": "din@epost.no",
-    "socials": [
-      { "name": "Instagram", "url": "https://instagram.com/dittbrukernavn", "icon": "instagram" },
-      { "name": "YouTube", "url": "https://youtube.com/@dittbrukernavn", "icon": "youtube" },
-      { "name": "TikTok", "url": "https://tiktok.com/@dittbrukernavn", "icon": "tiktok" }
-    ]
+    "socials": []
   },
 
   "gallery": {
