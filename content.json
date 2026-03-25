@@ -32,22 +32,14 @@
 
   "apps": {
     "title": "Mine Apper & Prosjekter",
-    "description": "Her finner du alt jeg har laget.",
+    "description": "Her finner du verktøy og prosjekter jeg har laget.",
     "items": [
       {
-        "name": "App Navn 1",
-        "description": "En kort beskrivelse av hva appen gjør og hvem den er for.",
-        "icon": "images/app1-icon.png",
-        "link": "https://lenke-til-app.no",
-        "badge": "Ny",
-        "platform": "iOS & Android"
-      },
-      {
-        "name": "App Navn 2",
-        "description": "En kort beskrivelse av hva appen gjør og hvem den er for.",
-        "icon": "images/app2-icon.png",
-        "link": "https://lenke-til-app2.no",
-        "badge": "",
+        "name": "Medisinliste-sammenligner",
+        "description": "Sammenligner medisinlister fra reseptmodul og sykehusepikrise. Identifiserer synonympreparater automatisk ved hjelp av Bytteliste 2026 (Sykehusapotekene Innlandet).",
+        "icon": "",
+        "link": "medisinliste-sammenligner.html",
+        "badge": "Helse",
         "platform": "Web"
       }
     ]

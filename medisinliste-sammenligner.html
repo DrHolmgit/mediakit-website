@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Medisinliste-sammenligner</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: system-ui, sans-serif; background: #f5f5f2; color: #1a1a18; padding: 2rem; max-width: 900px; margin: 0 auto; }
+h1 { font-size: 20px; font-weight: 500; margin-bottom: 0.25rem; }
+.subtitle { font-size: 12px; color: #888; margin-bottom: 1.5rem; }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+label { font-size: 13px; color: #666; display: block; margin-bottom: 6px; }
+textarea { width: 100%; height: 180px; font-size: 13px; padding: 10px; border-radius: 8px; border: 1px solid #ccc; background: #fff; color: #1a1a18; resize: vertical; font-family: inherit; line-height: 1.6; }
+textarea:focus { outline: none; border-color: #888; }
+.buttons { display: flex; gap: 8px; align-items: center; margin-bottom: 1.5rem; }
+button { padding: 8px 20px; border-radius: 8px; border: 1px solid #ccc; background: #fff; color: #1a1a18; font-size: 14px; cursor: pointer; font-family: inherit; }
+button:hover { background: #eee; }
+button.primary { background: #1a1a18; color: #fff; border-color: #1a1a18; }
+button.primary:hover { background: #333; }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+.result-section { background: #fff; border-radius: 12px; border: 1px solid #ddd; padding: 1.5rem; }
+.tabs { display: flex; gap: 8px; margin-bottom: 1.5rem; }
+.tab { padding: 6px 16px; border-radius: 8px; border: 1px solid #ccc; font-size: 13px; cursor: pointer; background: transparent; color: #666; font-family: inherit; }
+.tab.active { background: #1a1a18; color: #fff; border-color: #1a1a18; }
+.section-title { font-size: 11px; font-weight: 500; color: #888; text-transform: uppercase; letter-spacing: 0.05em; margin: 1rem 0 0.5rem; }
+.section-title:first-child { margin-top: 0; }
+.pill-row { display: flex; flex-wrap: wrap; gap: 6px; min-height: 28px; margin-bottom: 0.25rem; }
+.pill {
+  font-size: 13px; padding: 5px 12px; border-radius: 20px; line-height: 1.4;
+  cursor: default; transition: opacity 0.15s;
+}
+.pill.clickable { cursor: pointer; }
+.pill.clickable:hover { opacity: 0.75; }
+.pill-same { background: #EAF3DE; color: #27500A; }
+.pill-add { background: #E6F1FB; color: #0C447C; }
+.pill-remove { background: #FCEBEB; color: #791F1F; }
+.pill-synonym { background: #FAEEDA; color: #633806; }
+.pill-confirmed { background: #EAF3DE !important; color: #27500A !important; }
+.legend { display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #666; }
+.dot { width: 10px; height: 10px; border-radius: 50%; }
+.dot-same { background: #639922; }
+.dot-add { background: #185FA5; }
+.dot-remove { background: #A32D2D; }
+.dot-synonym { background: #BA7517; }
+.dot-click { background: #aaa; border: 1px dashed #888; }
+.empty { color: #aaa; font-size: 13px; font-style: italic; }
+.hidden { display: none; }
+.status { font-size: 12px; color: #888; }
+.hint { font-size: 11px; color: #aaa; margin-top: 0.25rem; font-style: italic; }
+</style>
+</head>
+<body>
+
+<h1>Medisinliste-sammenligner</h1>
+<p class="subtitle">Bruker Bytteliste for kommunehelsetjenesten 2026 (Sykehusapotekene Innlandet)</p>
+
+<div class="grid">
+  <div>
+    <label>Min liste (reseptmodul)</label>
+    <textarea id="myList" placeholder="Eks:&#10;Metformin 1000 mg x 2&#10;Atorvastatin 40 mg x 1&#10;Paracetamol 1g ved behov"></textarea>
+  </div>
+  <div>
+    <label>Sykehusets liste (epikrise)</label>
+    <textarea id="hospList" placeholder="Eks:&#10;Glucophage 1000 mg x 2&#10;Lipitor 40 mg x 1&#10;Panodil 1g ved behov"></textarea>
+  </div>
+</div>
+
+<div class="buttons">
+  <button class="primary" id="compareBtn" onclick="compare()">Sammenlign</button>
+  <button onclick="reset()">Nullstill</button>
+  <span class="status" id="status"></span>
+</div>
+
+<div id="results" class="result-section hidden">
+  <div class="legend">
+    <div class="legend-item"><div class="dot dot-same"></div> Likt i begge</div>
+    <div class="legend-item"><div class="dot dot-synonym"></div> Mulig synonym (klikk for å bekrefte)</div>
+    <div class="legend-item"><div class="dot dot-add"></div> Kun i sykehusliste (klikk for å bekrefte)</div>
+    <div class="legend-item"><div class="dot dot-remove"></div> Kun i din liste (klikk for å bekrefte)</div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('faste', this)">Faste medisiner</button>
+    <button class="tab" onclick="showTab('behov', this)">Ved behov</button>
+  </div>
+
+  <div id="tab-faste">
+    <div class="section-title">Likt i begge</div>
+    <div class="pill-row" id="faste-same"></div>
+    <div class="section-title">Mulig synonympreparat (iflg. byttelisten)</div>
+    <div class="pill-row" id="faste-synonym"></div>
+    <div class="hint">Klikk for å bekrefte at de er samme legemiddel</div>
+    <div class="section-title">Kun i sykehusliste</div>
+    <div class="pill-row" id="faste-add"></div>
+    <div class="hint">Klikk for å markere som håndtert</div>
+    <div class="section-title">Kun i din liste</div>
+    <div class="pill-row" id="faste-remove"></div>
+    <div class="hint">Klikk for å markere som håndtert</div>
+  </div>
+
+  <div id="tab-behov" class="hidden">
+    <div class="section-title">Likt i begge</div>
+    <div class="pill-row" id="behov-same"></div>
+    <div class="section-title">Mulig synonympreparat (iflg. byttelisten)</div>
+    <div class="pill-row" id="behov-synonym"></div>
+    <div class="hint">Klikk for å bekrefte at de er samme legemiddel</div>
+    <div class="section-title">Kun i sykehusliste</div>
+    <div class="pill-row" id="behov-add"></div>
+    <div class="hint">Klikk for å markere som håndtert</div>
+    <div class="section-title">Kun i din liste</div>
+    <div class="pill-row" id="behov-remove"></div>
+    <div class="hint">Klikk for å markere som håndtert</div>
+  </div>
+</div>
+
+<script>
+// ── BYTTELISTE 2026 ──────────────────────────────────────────────────────────
+// Hver gruppe = preparater som er byttbare med hverandre iflg. byttelisten
+const bytteliste = [
+  ['abasaglar','lantus','semglee'],
+  ['abilify','aripiprazole'],
+  ['acetylcystein','bronkyl','mucomyst'],
+  ['acetylsalisylsyre','albyl-e'],
+  ['aclasta','zoledronic acid','zoledronsyre'],
+  ['adenuric','febuxostat'],
+  ['aduvanz','volidax','elvanse','balidax'],
+  ['aerius','desloratadin'],
+  ['airflusal','salmex','seretide discus','salmeterol/fluticasone'],
+  ['albyl-e','acetylsalisylsyre'],
+  ['alendronat','fosamax'],
+  ['allopur','zyloric','allopurinol'],
+  ['allopurinol','zyloric','allopur'],
+  ['altifex','feksofenadin','telfast'],
+  ['amlodipin','norvasc'],
+  ['amitriptylin','sarotex'],
+  ['apixaban','eliquis'],
+  ['aprovel','irbesartan','ifirmasta'],
+  ['arava','leflunomide'],
+  ['arcoxia','etoricoxib'],
+  ['aricept','donepezil'],
+  ['atorvastatin','lipitor'],
+  ['atacand','candesartan'],
+  ['atarax','hydroxyzine'],
+  ['baklofen','lioresal'],
+  ['bisoprolol','emconcor','emconcor chf'],
+  ['bloxazok','metoprolol depottabletter','selo-zok'],
+  ['brilique','ticagrelor'],
+  ['bufomix','duoresp','symbicort'],
+  ['bupropion','wellbutrin','paritdam'],
+  ['candesartan','atacand'],
+  ['celebra','celebrex','celecoxib'],
+  ['cetirizin','zyrtec','cetimax'],
+  ['champic','vareniklin','varenicline'],
+  ['cialis','tadalafil','talmanco'],
+  ['cipralex','escitalopram'],
+  ['cipramil','citalopram'],
+  ['citalopram','cipramil'],
+  ['clopidogrel','plavix'],
+  ['clozapin','leponex'],
+  ['concerta','methylphenidate sandoz','delmosart','metylfenidat'],
+  ['cozaar','losartan'],
+  ['crestor','rosuvastatin'],
+  ['cymbalta','duloksetin','duloxetine'],
+  ['dabigatran','pradaxa'],
+  ['dapagliflozin','forxiga'],
+  ['diazepam','valium','stesolid','vival'],
+  ['diklofenak','voltaren'],
+  ['donepezil','aricept'],
+  ['doxylin','doksycyklin'],
+  ['doksycyklin','doxylin'],
+  ['duloksetin','cymbalta'],
+  ['duphalac','laktulose','levolac','betulac laktulose'],
+  ['ebixa','memantin','nemdatine'],
+  ['efexor','venlafaxin','venlazid'],
+  ['eliquis','apixaban'],
+  ['emconcor','bisoprolol'],
+  ['empagliflozin','jardiance'],
+  ['enalapril','renitec'],
+  ['escitalopram','cipralex'],
+  ['esomeprazol','nexium'],
+  ['ezetimib','ezetrol'],
+  ['ezetrol','ezetimib'],
+  ['felodipin','plendil'],
+  ['feksofenadin','altifex','telfast'],
+  ['fenoksymetylpenicillin','apocillin','pancillin','actacillin','weifapenin'],
+  ['apocillin','fenoksymetylpenicillin','pancillin','actacillin','weifapenin'],
+  ['fluoksetin','fontex','fluoxetin','fluoxetine'],
+  ['fontex','fluoksetin'],
+  ['forxiga','dapagliflozin'],
+  ['fosamax','alendronat'],
+  ['furosemid','furix','lasix'],
+  ['furix','furosemid'],
+  ['gabapentin','neurontin'],
+  ['glucophage','metformin'],
+  ['humalog','insulin lispro'],
+  ['humira','amgevita','hyrimoz','imraldi','yuflyma'],
+  ['ibux','ibuprofen','ibumetin'],
+  ['ibuprofen','ibux','ibumetin'],
+  ['imovane','zopiclone','zopitin'],
+  ['inspra','eplerenon'],
+  ['jardiance','empagliflozin'],
+  ['januvia','sitagliptin'],
+  ['klonazepam','rivotril'],
+  ['kolkisin','colrefuz','colchicine'],
+  ['laktulose','duphalac','levolac'],
+  ['lantus','abasaglar','semglee'],
+  ['lamictal','lamotrigin'],
+  ['lamotrigin','lamictal'],
+  ['leponex','clozapin'],
+  ['letrozol','femar'],
+  ['levaxin','levotyroxin','euthyrox'],
+  ['levotyroxin','levaxin','euthyrox'],
+  ['lipitor','atorvastatin'],
+  ['lisinopril','zestril'],
+  ['losartan','cozaar'],
+  ['losec','omeprazol'],
+  ['lyrica','pregabalin'],
+  ['marevan','warfarin'],
+  ['memantin','ebixa','nemdatine'],
+  ['metformin','glucophage'],
+  ['metoprolol','selo-zok','bloxazok','seloken'],
+  ['metoprolol depottabletter','selo-zok','bloxazok'],
+  ['mirtazapin','remeron'],
+  ['montelukast','singulair'],
+  ['neurontin','gabapentin'],
+  ['nexium','esomeprazol'],
+  ['norspan','buprefarm','bugnanto'],
+  ['norvasc','amlodipin'],
+  ['novorapid','insulin aspart'],
+  ['omeprazol','losec'],
+  ['ozempic','semaglutid'],
+  ['oxycontin','reltebon'],
+  ['panodil','paracetamol','paracet','pinex'],
+  ['paracetamol','panodil','paracet','pinex'],
+  ['paracet','panodil','paracetamol','pinex'],
+  ['paroxetin','seroxat'],
+  ['plavix','clopidogrel'],
+  ['plendil','felodipin'],
+  ['pradaxa','dabigatran'],
+  ['prednisolon','prednison'],
+  ['prednison','prednisolon'],
+  ['pregabalin','lyrica'],
+  ['ramipril','triatec'],
+  ['remeron','mirtazapin'],
+  ['renitec','enalapril'],
+  ['risperdal','risperidon'],
+  ['risperidon','risperdal'],
+  ['rivotril','klonazepam'],
+  ['rivaroksaban','xarelto','rivaxa'],
+  ['xarelto','rivaroksaban','rivaxa'],
+  ['rosuvastatin','crestor'],
+  ['salbutamol','ventoline'],
+  ['selo-zok','metoprolol','bloxazok'],
+  ['semglee','lantus','abasaglar'],
+  ['sertralin','zoloft'],
+  ['seroxat','paroxetin'],
+  ['sitagliptin','januvia'],
+  ['simvastatin','zocor'],
+  ['singulair','montelukast'],
+  ['sobril','oksazepam'],
+  ['oksazepam','sobril'],
+  ['somac','pantoprazol'],
+  ['pantoprazol','somac'],
+  ['spironolakton','spirix','aldactone'],
+  ['spirix','spironolakton'],
+  ['stesolid','diazepam','valium','vival'],
+  ['symbicort','bufomix','duoresp'],
+  ['tamsulosin','omnic','miktosan'],
+  ['telfast','feksofenadin','altifex'],
+  ['telmisartan','micardis'],
+  ['tikagrelor','brilique'],
+  ['triatec','ramipril'],
+  ['valium','diazepam','stesolid','vival'],
+  ['valsartan','diovan'],
+  ['diovan','valsartan'],
+  ['venlafaxin','efexor','venlazid'],
+  ['ventoline','salbutamol'],
+  ['viagra','sildenafil'],
+  ['sildenafil','viagra'],
+  ['vival','diazepam','valium','stesolid'],
+  ['voltaren','diklofenak'],
+  ['warfarin','marevan'],
+  ['xarelto','rivaroksaban','rivaxa'],
+  ['zocor','simvastatin'],
+  ['zoloft','sertralin'],
+  ['zolpidem','stilnoct'],
+  ['stilnoct','zolpidem'],
+  ['zopiclone','imovane','zopitin'],
+  ['zyloric','allopurinol','allopur'],
+  ['zyrtec','cetirizin','cetimax'],
+];
+
+function getBytteGroup(name) {
+  const n = name.toLowerCase().trim();
+  return bytteliste.find(g => g.some(s => n === s || n.startsWith(s + ' ') || s.startsWith(n)));
+}
+
+function areByttbare(a, b) {
+  if (a === b) return false;
+  const ga = getBytteGroup(a);
+  const gb = getBytteGroup(b);
+  if (!ga || !gb) return false;
+  return ga.some(x => gb.includes(x));
+}
+
+function parseList(text) {
+  const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+  const result = [];
+  let mode = null;
+  for (const line of lines) {
+    if (/^ref:/i.test(line)) continue;
+    if (/^[-=*]{3,}$/.test(line)) continue;
+    const lc = line.toLowerCase().replace(/[^a-z\u00e6\u00f8\u00e5\s]/g, '').trim();
+    if (/^(fast|faste medisiner?|faste)$/.test(lc)) { mode = 'fast'; continue; }
+    if (/^(ved behov|behovs?medisiner?|pn|prn)$/.test(lc)) { mode = 'behov'; continue; }
+    const behov = mode === 'behov' || /ved behov|prn|v\.b\.|vb\b/i.test(line);
+    result.push({ line, behov });
+  }
+  return result;
+}
+function isBehov(obj) { return obj.behov; }
+function lineOf(obj) { return typeof obj === 'string' ? obj : obj.line; }
+function drugName(obj) {
+  const s = lineOf(obj);
+  return s.split(/[\s,]+/)[0].toLowerCase();
+}
+function extractStrength(line) {
+  const m = line.match(/(\d+(?:[,.]\d+)?)\s*(mg|mikrog|mcg|g\b|ml|ie|mmol|%)/i);
+  return m ? m[1].replace(',', '.') + m[2].toLowerCase() : null;
+}
+function sameStrength(a, b) {
+  const sa = extractStrength(a), sb = extractStrength(b);
+  return sa && sb && sa === sb;
+}
+
+function toggleConfirmed(el) {
+  el.classList.toggle('pill-confirmed');
+  el.classList.toggle('pill-same');
+  if (el.classList.contains('pill-same')) {
+    el.title = 'Klikk for å angre';
+  } else {
+    el.title = 'Klikk for å bekrefte';
+  }
+}
+
+function makePill(text, cls, clickable) {
+  const span = document.createElement('span');
+  span.className = 'pill ' + cls + (clickable ? ' clickable' : '');
+  span.textContent = text;
+  if (clickable) {
+    span.title = 'Klikk for å bekrefte / angre';
+    span.addEventListener('click', () => {
+      span.classList.remove('pill-add','pill-remove','pill-synonym','pill-confirmed');
+      if (!span.classList.contains('pill-same')) {
+        span.classList.add('pill-same');
+        span.title = 'Klikk for å angre';
+      } else {
+        span.classList.remove('pill-same');
+        span.classList.add(span.dataset.orig || 'pill-add');
+        span.title = 'Klikk for å bekrefte';
+      }
+    });
+    span.dataset.orig = cls;
+  }
+  return span;
+}
+
+function fillRow(id, items, cls, clickable) {
+  const el = document.getElementById(id);
+  el.innerHTML = '';
+  if (items.length === 0) {
+    el.innerHTML = '<span class="empty">Ingen</span>';
+    return;
+  }
+  items.forEach(t => el.appendChild(makePill(t, cls, clickable)));
+}
+
+let festCache = {};
+let festAvailable = null;
+
+async function testFest() {
+  try {
+    const url = 'https://fest.legemiddelverket.no/api/v1/legemiddelpakning?navn=metformin&antall=1';
+    const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+    festAvailable = res.ok;
+  } catch(e) {
+    festAvailable = false;
+  }
+}
+
+async function lookupFestATC(name) {
+  if (!festAvailable) return null;
+  if (festCache[name] !== undefined) return festCache[name];
+  try {
+    const url = 'https://fest.legemiddelverket.no/api/v1/legemiddelpakning?navn=' + encodeURIComponent(name) + '&antall=5';
+    const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+    if (!res.ok) { festCache[name] = null; return null; }
+    const data = await res.json();
+    const items = Array.isArray(data) ? data : (data.data || data.result || []);
+    const atcs = items.map(i => i.atcKode || i.atc || '').filter(Boolean);
+    festCache[name] = atcs.length ? atcs[0] : null;
+  } catch(e) {
+    festCache[name] = null;
+  }
+  return festCache[name];
+}
+
+function setStatus(msg, color) {
+  const el = document.getElementById('status');
+  el.textContent = msg;
+  el.style.color = color || '#888';
+}
+
+async function compare() {
+  const btn = document.getElementById('compareBtn');
+  btn.disabled = true;
+  btn.textContent = 'Sjekker...';
+  setStatus('Tester FEST-tilkobling...', '#888');
+
+  const myRaw = parseList(document.getElementById('myList').value);
+  const hospRaw = parseList(document.getElementById('hospList').value);
+
+  // Test FEST first
+  await testFest();
+
+  if (festAvailable) {
+    setStatus('FEST tilgjengelig – slår opp legemidler...', '#185FA5');
+    const allNames = [...new Set([
+      ...myRaw.map(o => drugName(o.line)),
+      ...hospRaw.map(o => drugName(o.line))
+    ])];
+    await Promise.all(allNames.map(n => lookupFestATC(n)));
+    const festHits = Object.values(festCache).filter(v => v !== null).length;
+    setStatus('Bytteliste 2026 ✓   FEST-API ✓ (' + festHits + ' treff)', '#27500A');
+  } else {
+    setStatus('Bytteliste 2026 ✓   FEST-API utilgjengelig (CORS/nett) – kun bytteliste brukt', '#BA7517');
+  }
+
+  renderGroup('faste', myRaw.filter(l => !isBehov(l)).map(o => o.line), hospRaw.filter(l => !isBehov(l)).map(o => o.line));
+  renderGroup('behov', myRaw.filter(l => isBehov(l)).map(o => o.line), hospRaw.filter(l => isBehov(l)).map(o => o.line));
+  document.getElementById('results').classList.remove('hidden');
+
+  btn.disabled = false;
+  btn.textContent = 'Sammenlign';
+}
+
+function isSynonymPair(myLine, hLine) {
+  const a = drugName(myLine), b = drugName(hLine);
+  if (a === b) return false;
+  if (areByttbare(a, b)) return true;
+  // FEST ATC fallback
+  const atcA = festCache[a], atcB = festCache[b];
+  return atcA && atcB && atcA === atcB;
+}
+
+function renderGroup(prefix, myList, hospList) {
+  const myNames = myList.map(drugName);
+  const hospNames = hospList.map(drugName);
+
+  const same = myList.filter(l => hospNames.includes(drugName(l)));
+  const onlyMineRaw = myList.filter(l => !hospNames.includes(drugName(l)));
+  const onlyHospRaw = hospList.filter(l => !myNames.includes(drugName(l)));
+
+  const synonymPairs = [];
+  const sameBytteliste = [];
+
+  const onlyMine = onlyMineRaw.filter(myLine => {
+    const match = onlyHospRaw.find(hLine => isSynonymPair(myLine, hLine));
+    if (match) {
+      if (sameStrength(myLine, match)) {
+        sameBytteliste.push(myLine + ' ↔ ' + match + ' ✓');
+      } else {
+        synonymPairs.push(myLine + ' ↔ ' + match);
+      }
+      return false;
+    }
+    return true;
+  });
+  const onlyHosp = onlyHospRaw.filter(hLine => !onlyMineRaw.some(myLine => isSynonymPair(myLine, hLine)));
+
+  // Same (confirmed automatic)
+  const sameEl = document.getElementById(prefix + '-same');
+  sameEl.innerHTML = '';
+  [...same.map(i => makePill(i, 'pill-same', false)),
+   ...sameBytteliste.map(i => makePill(i, 'pill-same', false))
+  ].forEach(p => sameEl.appendChild(p));
+  if (sameEl.children.length === 0) sameEl.innerHTML = '<span class="empty">Ingen</span>';
+
+  // Synonyms (clickable)
+  const synEl = document.getElementById(prefix + '-synonym');
+  synEl.innerHTML = '';
+  if (synonymPairs.length === 0) {
+    synEl.innerHTML = '<span class="empty">Ingen funnet</span>';
+  } else {
+    synonymPairs.forEach(p => synEl.appendChild(makePill(p, 'pill-synonym', true)));
+  }
+
+  // Only hosp (clickable)
+  const addEl = document.getElementById(prefix + '-add');
+  addEl.innerHTML = '';
+  if (onlyHosp.length === 0) {
+    addEl.innerHTML = '<span class="empty">Ingen</span>';
+  } else {
+    onlyHosp.forEach(p => addEl.appendChild(makePill(p, 'pill-add', true)));
+  }
+
+  // Only mine (clickable)
+  const remEl = document.getElementById(prefix + '-remove');
+  remEl.innerHTML = '';
+  if (onlyMine.length === 0) {
+    remEl.innerHTML = '<span class="empty">Ingen</span>';
+  } else {
+    onlyMine.forEach(p => remEl.appendChild(makePill(p, 'pill-remove', true)));
+  }
+}
+
+function showTab(tab, btn) {
+  document.getElementById('tab-faste').classList.toggle('hidden', tab !== 'faste');
+  document.getElementById('tab-behov').classList.toggle('hidden', tab !== 'behov');
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+}
+function reset() {
+  document.getElementById('myList').value = '';
+  document.getElementById('hospList').value = '';
+  document.getElementById('results').classList.add('hidden');
+  document.getElementById('status').textContent = '';
+}
+</script>
+</body>
+</html>
